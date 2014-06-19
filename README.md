@@ -35,6 +35,8 @@ will out put the help message .. which is indeed not very helpful at the moment
 start your docker container which has volumes.. 
 Note I use my generic paimpozhil/data container which i use for my Whatpanel which is my own cPanel replacement.
 
+more info here : https://github.com/paimpozhil/WhatPanel
+
 ```
 root@li730-63:~/docke# docker run -td --name mydata  paimpozhil/data
 eba7a4aef3e3007d41b81a45e914196c3a74d0e69adaa4f781c2decb83730619
@@ -108,3 +110,6 @@ root@3acae1260562:/data#
 
 ```
 
+
+Credits & references : 
+http://docs.docker.com/userguide/dockervolumes/#creating-and-mounting-a-data-volume-container
