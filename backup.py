@@ -2,6 +2,7 @@ import docker
 import sys
 import pickle
 import tarfile
+from subprocess import call
 
 c = docker.Client(base_url='unix://var/run/docker.sock',
                   version='1.9',
@@ -9,7 +10,6 @@ c = docker.Client(base_url='unix://var/run/docker.sock',
 
 #first argument is the option backup/restore
 option = sys.argv[1]
-
 name = sys.argv[2]
 
 
@@ -23,7 +23,7 @@ if option == "backup":
 	print "writing meta data to file "
 	pickle.dump ( container , open ("metadata","wb") )
 
-	tar = tarfile.open("backup.tar.gz", "w:gz")
+	tar = tarfile.open(name + ".tar", "w:gz")
 	tar.add("metadata")
 	for i, v in enumerate(volumes):
 	    print  v, volumes[v]
@@ -31,8 +31,11 @@ if option == "backup":
 	tar.close()
 
 elif option == "restore":
+	#third argument is the restored container name
+	destname = sys.argv[3]
+	
 	print "Restoring"
-	tar = tarfile.open("backup.tar.gz")
+	tar = tarfile.open(name + ".tar")
 	metadatafile =  tar.extractfile("metadata")
 	metadata =  pickle.load(metadatafile)
 
@@ -45,9 +48,13 @@ elif option == "restore":
        		print  v, volumes[v]
 		vlist.append(v)
 
-	restored_container =	c.create_container(imagename,tty=True,volumes=vlist)
+	restored_container = c.create_container(imagename,tty=True,volumes=vlist,name=destname)
 	c.start(restored_container);
+	runstring = "docker run --rm -ti --volumes-from " + restored_container['Id'] +" -v $(pwd):/backup2  ubuntu tar xvf /backup2/"+ name +".tar"
+	print runstring
+	call(runstring,shell=True)
 	
-	
+elif option == "help":
+	print "python backup.py [backup/restore] data-container-name [restore-contianer-name]"
 
 
