@@ -113,11 +113,33 @@ root@3acae1260562:/data#
 
 ```
 
-## To Do
+## Run as a container
+First, you need to build it :
+```
+docker build --rm --no-cache -t docker-volume-backup .
+```
 
-Package this into a docker container for more fun .
+Once done, can can backup using :
+```
+docker run -t -i --rm \
+  -v /var/lib/docker/vfs:/var/lib/docker/vfs \
+  -v /var/run/docker.sock:/var/run/docker.sock -v /tmp:/backup docker-volume-backup \
+  backup <container>
+```
+The .tar backups will be stored in /backup ... which you can bind to any dir on your docker host (above on /tmp not a good idea ;) )
 
-Credits & references : 
+
+```
+ docker run -t -i --rm \
+  -v /var/lib/docker/vfs:/var/lib/docker/vfs \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  restore <backupedcontainer> <newcontainer> <tar storage absolute path on host>
+```
+The .tar backups will be Fetched in "tar storage absolute path on host" ...
+
+
+
+## Credits & references : 
 http://docs.docker.com/userguide/dockervolumes/#creating-and-mounting-a-data-volume-container
 
 ## Need support?
