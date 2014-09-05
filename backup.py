@@ -15,7 +15,7 @@ def usage():
 #Might not be truly cleany as a way to check but it works ;)
 def dockerized():
 	if 'docker' in open('/proc/1/cgroup').read():
-	return True
+		return True
 
 #first argument is the option backup/restore
 if len(sys.argv) < 3:
@@ -64,20 +64,39 @@ elif option == "restore":
 	metadatafile =  tar.extractfile("metadata")
 	metadata =  pickle.load(metadatafile)
 
-#	print metadata
 	imagename = metadata["Config"]["Image"]
-	volumes =  metadata['Volumes']
+        volumes =  metadata['Volumes']
 	vlist = []
-
 	for i, v in enumerate(volumes):
        		print  v, volumes[v]
 		vlist.append(v)
 
+	#Start the restored container
 	restored_container = c.create_container(imagename,tty=True,volumes=vlist,name=destname)
 	c.start(restored_container);
-	runstring = "docker run --rm -ti --volumes-from " + restored_container['Id'] +" -v $(pwd):/backup2  ubuntu tar xvf /backup2/"+ name +".tar"
-	print runstring
-	call(runstring,shell=True)
+
+	#Recreate volumes_from (as it does not work when binds+volumes_from are used together
+	infodest = c.inspect_container(restored_container)
+	volumes = infodest['Volumes']
+	vlist = []
+	binds = {}
+	for i, v in enumerate(volumes):
+		vlist.append(v)
+		binding = { volumes[v]:{'bind':v} }
+		binds.update(binding)
+
+	#Add tar storage to bindings list
+	if dockerized():
+	        binds.update({datadir: {'bind': '/backup2'} })
+	else:
+	        binds.update({ str(os.path.dirname(os.path.realpath(__file__))): {'bind': '/backup2'} })
+
+	#Start the restorer container
+	restorer_container = c.create_container('ubuntu',detach=False, stdin_open=True, tty=True, command="tar xvf /backup2/"+ name +".tar",volumes=vlist)
+	c.start(restorer_container,binds=binds)	
+	c.wait(restorer_container)
+	print c.logs(restorer_container['Id'])
+	c.remove_container(restorer_container)
 	
 else:
 	usage()
