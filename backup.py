@@ -111,7 +111,7 @@ elif option == "restore":
 	c.start(restorer_container,binds=binds)	
 	c.wait(restorer_container)
 	print c.logs(restorer_container['Id'])
-	#c.remove_container(restorer_container)
+	c.remove_container(restorer_container)
 	
 else:
 	usage()
