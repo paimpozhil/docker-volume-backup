@@ -10,7 +10,17 @@ c = docker.Client(base_url='unix://var/run/docker.sock',
                   timeout=10)
 #Prints Help Message
 def usage():
-	print "python backup.py [backup/restore] data-container-name [restore-container-name]"
+	print "Running normally :"
+	print "	python backup.py [backup/restore] data-container-name [restore-container-name]"
+	print "Running withing as a docker image (named docker-volume-backup) :"
+	print " docker run -t -i --rm \ "
+	print "  -v /var/lib/docker/vfs:/var/lib/docker/vfs \ "
+	print "  -v /var/run/docker.sock:/var/run/docker.sock -v /tmp:/backup docker-volume-backup \ "
+	print "  backup <container>"
+	print "docker run -t -i --rm \ "
+	print "  -v /var/lib/docker/vfs:/var/lib/docker/vfs \ "
+	print "  -v /var/run/docker.sock:/var/run/docker.sock -v /tmp:/backup docker-volume-backup \ "
+	print "  restore <backupedcontainer> <newcontainer> <tar storage absolute path on host>"
 #Determines if we run within a docker container
 #Might not be truly cleany as a way to check but it works ;)
 def dockerized():
@@ -55,6 +65,10 @@ if option == "backup":
 elif option == "restore":
 	#third argument is the restored container name
 	destname = sys.argv[3]
+	if dockerized() and len(sys.argv) < 5:
+		print "Restore Storage is missing !"
+		usage()
+		sys.exit(1)
 	
 	print "Restoring"
 	if dockerized():
@@ -87,16 +101,17 @@ elif option == "restore":
 
 	#Add tar storage to bindings list
 	if dockerized():
-	        binds.update({datadir: {'bind': '/backup2'} })
+		datadir = sys.argv[4]
+	        binds.update({str(datadir): {'bind': '/backup2'} })
 	else:
 	        binds.update({ str(os.path.dirname(os.path.realpath(__file__))): {'bind': '/backup2'} })
 
 	#Start the restorer container
-	restorer_container = c.create_container('ubuntu',detach=False, stdin_open=True, tty=True, command="tar xvf /backup2/"+ name +".tar",volumes=vlist)
+	restorer_container = c.create_container('ubuntu',detach=False, tty=True, command="tar xvf /backup2/"+ name +".tar",volumes=vlist)
 	c.start(restorer_container,binds=binds)	
 	c.wait(restorer_container)
 	print c.logs(restorer_container['Id'])
-	c.remove_container(restorer_container)
+	#c.remove_container(restorer_container)
 	
 else:
 	usage()
