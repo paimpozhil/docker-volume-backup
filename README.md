@@ -132,10 +132,10 @@ The .tar backups will be stored in /backup ... which you can bind to any dir on 
 ```
  docker run -t -i --rm \
   -v /var/lib/docker/vfs:/var/lib/docker/vfs \
-  -v /var/run/docker.sock:/var/run/docker.sock -v /tmp:/backup docker-volume-backup \
-  restore <backupedcontainer> <newcontainer>
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  restore <backupedcontainer> <newcontainer> <tar storage absolute path on host>
 ```
-The .tar backups will be Fetched in /backup ... which you can bind to any dir on your docker host (above on /tmp not a good idea ;) )
+The .tar backups will be Fetched in "tar storage absolute path on host" ...
 
 
 

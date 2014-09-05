@@ -19,7 +19,7 @@ def usage():
 	print "  backup <container>"
 	print "docker run -t -i --rm \ "
 	print "  -v /var/lib/docker/vfs:/var/lib/docker/vfs \ "
-	print "  -v /var/run/docker.sock:/var/run/docker.sock -v /tmp:/backup docker-volume-backup \ "
+	print "  -v /var/run/docker.sock:/var/run/docker.sock \ "
 	print "  restore <backupedcontainer> <newcontainer> <tar storage absolute path on host>"
 #Determines if we run within a docker container
 #Might not be truly cleany as a way to check but it works ;)
