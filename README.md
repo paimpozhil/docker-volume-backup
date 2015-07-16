@@ -3,7 +3,7 @@ docker-volume-backup
 
 a python script to backup/restore the docker data containers / volumes.
 
-this script is particularly suitable for volume only contianers thought it should work with any container that has volumes. 
+this script is particularly suitable for volume only containers thought it should work with any container that has volumes. 
 
 ####Requires Python && Docker-py python package.
 
